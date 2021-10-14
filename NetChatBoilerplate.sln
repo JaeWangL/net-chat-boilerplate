@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31717.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetChatBoilerplate.API", "NetChatBoilerplate.API\NetChatBoilerplate.API.csproj", "{568964FE-5FBD-4DF5-8179-3A92E104AFE5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetChatBoilerplate.Domain", "NetChatBoilerplate.Domain\NetChatBoilerplate.Domain.csproj", "{37638346-3787-4BFC-A684-566D1C1DB308}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetChatBoilerplate.Infrastructure", "NetChatBoilerplate.Infrastructure\NetChatBoilerplate.Infrastructure.csproj", "{02EB7BEA-A357-4B33-AA52-FE75B9A29FFB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{84047F30-BF69-46C6-B692-68080B649882}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetChatBoilerplate.Application", "NetChatBoilerplate.Application\NetChatBoilerplate.Application.csproj", "{8A388404-C67B-46FD-8988-1C7389884890}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{568964FE-5FBD-4DF5-8179-3A92E104AFE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{568964FE-5FBD-4DF5-8179-3A92E104AFE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{568964FE-5FBD-4DF5-8179-3A92E104AFE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{568964FE-5FBD-4DF5-8179-3A92E104AFE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37638346-3787-4BFC-A684-566D1C1DB308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37638346-3787-4BFC-A684-566D1C1DB308}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37638346-3787-4BFC-A684-566D1C1DB308}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37638346-3787-4BFC-A684-566D1C1DB308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02EB7BEA-A357-4B33-AA52-FE75B9A29FFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02EB7BEA-A357-4B33-AA52-FE75B9A29FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02EB7BEA-A357-4B33-AA52-FE75B9A29FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02EB7BEA-A357-4B33-AA52-FE75B9A29FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A388404-C67B-46FD-8988-1C7389884890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A388404-C67B-46FD-8988-1C7389884890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A388404-C67B-46FD-8988-1C7389884890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A388404-C67B-46FD-8988-1C7389884890}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0B30F9DB-A5AB-4618-8CC5-CF6DBB4D7244}
+	EndGlobalSection
+EndGlobal
