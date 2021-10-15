@@ -1,4 +1,4 @@
-namespace NetChatBoilerplate.Domain.AggregatesModel.Doctor
+namespace NetChatBoilerplate.Domain.AggregatesModel.Profile
 {
     using NetChatBoilerplate.Domain.SeedWork;
 

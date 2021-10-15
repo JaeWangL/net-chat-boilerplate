@@ -3,7 +3,7 @@ namespace NetChatBoilerplate.Infrastructure.EntityConfigurations
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
     using Microsoft.EntityFrameworkCore.ValueGeneration;
-    using NetChatBoilerplate.Domain.AggregatesModel.Doctor;
+    using NetChatBoilerplate.Domain.AggregatesModel.Profile;
 
     internal class DoctorTypeConfiguration : IEntityTypeConfiguration<DoctorEntity>
     {

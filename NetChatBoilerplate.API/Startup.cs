@@ -8,7 +8,6 @@ namespace NetChatBoilerplate.API
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.OpenApi.Models;
     using NetChatBoilerplate.API.Extensions;
     using NetChatBoilerplate.API.Infrastructure.AutofacModules;
 
@@ -24,11 +23,12 @@ namespace NetChatBoilerplate.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllers();
-            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "NetChatBoilerplate.API", Version = "v1" }));
             services.AddSignalR();
-            services.AddCustomDbContext(this.Configuration);
+            services
+                .AddCustomMvc()
+                .AddCustomDbContext(this.Configuration)
+                .AddCustomSwagger()
+                .AddCustomApiVersioning();
 
             var container = new ContainerBuilder();
             container.Populate(services);
@@ -39,21 +39,23 @@ namespace NetChatBoilerplate.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NetChatBoilerplate.API v1"));
+                app.UseCustomSwaggerUI();
             }
 
             app.UseRouting();
+            app.UseCors("CorsPolicy");
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapDefaultControllerRoute();
                 endpoints.MapControllers();
             });
         }

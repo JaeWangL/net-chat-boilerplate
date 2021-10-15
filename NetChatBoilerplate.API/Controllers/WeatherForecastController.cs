@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NetChatBoilerplate.Domain.AggregatesModel.Doctor;
+using NetChatBoilerplate.Domain.AggregatesModel.Profile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,10 +45,10 @@ namespace NetChatBoilerplate.API.Controllers
 
         [HttpPost("")]
         public async Task<DoctorEntity> CreateTest() {
-            var newEntity = await this._doctorRepo.CreateAsync(new DoctorEntity("Test", "TestURl"));
+            var newEntity = this._doctorRepo.Create(new DoctorEntity("0", "Test", "TestURl"));
             await this._doctorRepo.UnitOfWork.SaveChangesAsync();
 
             return newEntity;
-         }
+        }
     }
 }

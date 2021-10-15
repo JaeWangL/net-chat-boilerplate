@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="AggregatesModel\ChatRooms\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AggregatesModel\Chat\" />
+  </ItemGroup>
 </Project>

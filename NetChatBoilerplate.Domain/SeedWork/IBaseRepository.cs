@@ -11,10 +11,10 @@ namespace NetChatBoilerplate.Domain.SeedWork
 
         Task<IReadOnlyList<T>> FindAllAsync();
 
-        Task<T> CreateAsync(T entity);
+        T Create(T entity);
 
-        Task UpdateAsync(T entity);
+        T Update(T entity);
 
-        Task DeleteAsync(T entity);
+        void Delete(T entity);
     }
 }

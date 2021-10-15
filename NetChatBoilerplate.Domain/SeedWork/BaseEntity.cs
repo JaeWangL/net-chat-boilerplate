@@ -7,5 +7,15 @@ namespace NetChatBoilerplate.Domain.SeedWork
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
+
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
+
+        public BaseEntity()
+        {
+            this.CreatedAt = DateTimeOffset.UtcNow;
+            this.UpdatedAt = DateTimeOffset.UtcNow;
+        }
     }
 }
