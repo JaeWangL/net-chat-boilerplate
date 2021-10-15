@@ -180,7 +180,7 @@ dotnet_remove_unnecessary_suppression_exclusions = none:warning
 
 # C# Unnecessary code rules
 [*.{cs,csx,cake}]
-csharp_style_unused_value_expression_statement_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = false
 dotnet_diagnostic.IDE0058.severity = suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 dotnet_diagnostic.IDE0059.severity = suggestion
@@ -263,6 +263,9 @@ dotnet_naming_style.camel_case_style.capitalization = camel_case
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 # first_upper_style - The first character must start with an upper-case character
 dotnet_naming_style.first_upper_style.capitalization = first_word_upper
+# private_prefix_style - Private variables must be CamelCase and the first character of an interface must be an '_'
+dotnet_naming_style.private_prefix_style.capitalization = camel_case
+dotnet_naming_style.private_prefix_style.required_prefix = _
 # prefix_interface_with_i_style - Interfaces must be PascalCase and the first character of an interface must be an 'I'
 dotnet_naming_style.prefix_interface_with_i_style.capitalization = pascal_case
 dotnet_naming_style.prefix_interface_with_i_style.required_prefix = I
@@ -345,12 +348,16 @@ dotnet_naming_rule.stylecop_instance_fields_must_be_private_rule.severity       
 
 # Private fields must be camelCase
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1306.md
-dotnet_naming_symbols.stylecop_private_fields_group.applicable_accessibilities = private
-dotnet_naming_symbols.stylecop_private_fields_group.applicable_kinds           = field
-dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.symbols     = stylecop_private_fields_group
-dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.style       = camel_case_style
-dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.severity    = warning
-dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.required_prefix = T
+# dotnet_naming_symbols.stylecop_private_fields_group.applicable_accessibilities = private
+# dotnet_naming_symbols.stylecop_private_fields_group.applicable_kinds           = field
+# dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.symbols     = stylecop_private_fields_group
+# dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.style       = camel_case_style
+# dotnet_naming_rule.stylecop_private_fields_must_be_camel_case_rule.severity    = warning
+dotnet_naming_symbols.private_fields.required_modifiers       = private
+dotnet_naming_symbols.private_fields.applicable_kinds         = field
+dotnet_naming_rule.private_fields_should_have_prefix.symbols  = private_fields
+dotnet_naming_rule.private_fields_should_have_prefix.style    = private_prefix_style
+dotnet_naming_rule.private_fields_should_have_prefix.severity = warning
 
 # Local variables must be camelCase
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1312.md
