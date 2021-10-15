@@ -13,27 +13,29 @@ namespace NetChatBoilerplate.API
 
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            this.Configuration = configuration;
-        }
+        private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        {
+            this._configuration = configuration;
+            this._environment = environment;
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
             services
-                .AddCustomMvc()
-                .AddCustomDbContext(this.Configuration)
+                .AddCustomMvc(this._environment)
+                .AddCustomDbContext(this._configuration)
                 .AddCustomSwagger()
                 .AddCustomApiVersioning();
 
             var container = new ContainerBuilder();
             container.Populate(services);
 
-            container.RegisterModule(new ApplicationModule(this.Configuration["ConnectionString"]));
+            container.RegisterModule(new ApplicationModule(this._configuration["ConnectionString"]));
 
             return new AutofacServiceProvider(container.Build());
         }

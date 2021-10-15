@@ -26,7 +26,7 @@ namespace NetChatBoilerplate.API.Hubs
     public class ConsultationChatHub : Hub
     {
         private readonly IParticipantRepository _participantRepo;
-        private List<ChatClient> _chatClients = new();
+        private readonly List<ChatClient> _chatClients = new();
 
         public ConsultationChatHub(IParticipantRepository participantRepo)
         {

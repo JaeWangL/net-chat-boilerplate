@@ -9,9 +9,9 @@ namespace NetChatBoilerplate.API.Controllers
     using NetChatBoilerplate.Domain.AggregatesModel.Profile;
     using Swashbuckle.AspNetCore.Annotations;
 
-    [Route("[controller]")]
-    [ApiController]
     [ApiVersion(ApiConstants.V1)]
+    [Route("v{version:apiVersion}/[controller]")]
+    [ApiController]
     [SwaggerResponse(
         StatusCodes.Status500InternalServerError,
         "The MIME type in the Accept HTTP header is not acceptable.",
@@ -33,7 +33,7 @@ namespace NetChatBoilerplate.API.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "New doctor was created", typeof(DoctorEntity))]
         public async Task<DoctorEntity> Create()
         {
-            var newEntity = this._doctorRepo.Create(new DoctorEntity("0", "Test", "TestURl"));
+            var newEntity = this._doctorRepo.Create(new DoctorEntity("2", "Test", "TestURl"));
             await this._doctorRepo.UnitOfWork.SaveChangesAsync();
 
             return newEntity;

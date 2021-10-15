@@ -13,8 +13,8 @@ namespace NetChatBoilerplate.API.Extensions
                 {
                     // Set the Swagger UI browser document title.
                     options.DocumentTitle = "Title";
-                    // Set the Swagger UI to render at '/'.
-                    options.RoutePrefix = "/swagger";
+                    // Set the Swagger UI to render at '/docs'.
+                    options.RoutePrefix = "docs";
 
                     options.DisplayOperationId();
                     options.DisplayRequestDuration();

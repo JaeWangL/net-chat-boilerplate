@@ -26,16 +26,9 @@ IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
         .ConfigureKestrel(options =>
         {
             var ports = GetDefinedPorts(configuration);
-            options.Listen(IPAddress.Any, ports.httpPort, listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-            });
+            options.Listen(IPAddress.Any, ports.httpPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2);
 
-            options.Listen(IPAddress.Any, ports.grpcPort, listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http2;
-            });
-
+            options.Listen(IPAddress.Any, ports.grpcPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
         })
         .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
         .UseStartup<Startup>()
@@ -57,11 +50,4 @@ IConfiguration GetConfiguration()
     var grpcPort = config.GetValue("GRPC_PORT", 5001);
     var port = config.GetValue("PORT", 80);
     return (port, grpcPort);
-}
-
-public class Program
-{
-
-    public static string Namespace = typeof(Startup).Namespace;
-    public static string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
 }

@@ -6,6 +6,8 @@ namespace NetChatBoilerplate.Infrastructure
     using NetChatBoilerplate.Domain.AggregatesModel.Chat;
     using NetChatBoilerplate.Domain.AggregatesModel.Profile;
     using NetChatBoilerplate.Domain.SeedWork;
+    using NetChatBoilerplate.Infrastructure.EntityConfigurations;
+
     // using NetChatBoilerplate.Infrastructure.EntityConfigurations;
 
     public class CosmosContext : DbContext, IUnitOfWork
@@ -26,13 +28,11 @@ namespace NetChatBoilerplate.Infrastructure
             this.Database.EnsureCreated();
         }
 
-        /*
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new DoctorTypeConfiguration());
             modelBuilder.ApplyConfiguration(new PatientTypeConfiguration());
         }
-        */
 
         public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
         {
