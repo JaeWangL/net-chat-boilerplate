@@ -8,13 +8,6 @@ namespace NetChatBoilerplate.API.Infrastructure.AutofacModules
 
     public class ApplicationModule : Module
     {
-        public string QueriesConnectionString { get; }
-
-        public ApplicationModule(string qconstr)
-        {
-            this.QueriesConnectionString = qconstr;
-        }
-
         protected override void Load(ContainerBuilder builder)
         {
             // Chat

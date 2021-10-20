@@ -1,15 +1,14 @@
 namespace NetChatBoilerplate.API
 {
-    using System;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
+    using Boxed.AspNetCore;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NetChatBoilerplate.API.Constants;
     using NetChatBoilerplate.API.Extensions;
-    using NetChatBoilerplate.API.Infrastructure.AutofacModules;
 
     public class Startup
     {
@@ -23,43 +22,44 @@ namespace NetChatBoilerplate.API
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public virtual IServiceProvider ConfigureServices(IServiceCollection services)
+        public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
             services
+                .AddCustomOptions(this._configuration)
+                .AddServerTiming()
                 .AddCustomMvc(this._environment)
+                .AddCustomResponseCompression(this._configuration)
                 .AddCustomDbContext(this._configuration)
                 .AddCustomSwagger()
-                .AddCustomApiVersioning();
-
-            var container = new ContainerBuilder();
-            container.Populate(services);
-
-            container.RegisterModule(new ApplicationModule(this._configuration["ConnectionString"]));
-
-            return new AutofacServiceProvider(container.Build());
+                .AddCustomApiVersioning()
+                .AddCustomHealthChecks();
+            services.AddOptions();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseCustomSwaggerUI();
-            }
-
-            app.UseRouting();
-            app.UseCors("CorsPolicy");
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapDefaultControllerRoute();
-                endpoints.MapControllers();
-            });
-        }
+        public virtual void Configure(IApplicationBuilder application) =>
+            application
+                .UseIf(
+                    this._environment.IsDevelopment(),
+                    x => x.UseServerTiming())
+                .UseRouting()
+                .UseCors(AppConstants.CorsPolicy)
+                .UseResponseCaching()
+                .UseResponseCompression()
+                .UseIf(
+                    this._environment.IsDevelopment(),
+                    x => x.UseDeveloperExceptionPage())
+                .UseStaticFilesWithCacheControl()
+                .UseCustomSerilogRequestLogging()
+                .UseEndpoints(
+                    builder =>
+                    {
+                        builder.MapControllers();
+                        builder.MapHealthChecks("/status");
+                        builder.MapHealthChecks("/status/self", new HealthCheckOptions() { Predicate = _ => false });
+                    })
+                .UseSwagger()
+                .UseCustomSwaggerUI();
     }
 }

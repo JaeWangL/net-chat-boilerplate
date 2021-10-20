@@ -1,14 +1,21 @@
 namespace NetChatBoilerplate.API.Extensions
 {
+    using System.IO.Compression;
+    using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using Boxed.AspNetCore;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.ResponseCompression;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Options;
     using NetChatBoilerplate.API.Infrastructure.Extensions;
+    using NetChatBoilerplate.API.Infrastructure.Options;
     using NetChatBoilerplate.Infrastructure;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -34,6 +41,12 @@ namespace NetChatBoilerplate.API.Extensions
 
             return services;
         }
+
+        public static IServiceCollection AddCustomHealthChecks(this IServiceCollection services) =>
+            services
+                .AddHealthChecks()
+                // Add health checks for external dependencies here. See https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
+                .Services;
 
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IWebHostEnvironment environment)
         {
@@ -64,6 +77,36 @@ namespace NetChatBoilerplate.API.Extensions
 
             return services;
         }
+
+        public static IServiceCollection AddCustomOptions(
+            this IServiceCollection services,
+            IConfiguration configuration) =>
+            services
+                // ConfigureAndValidateSingleton registers IOptions<T> and also T as a singleton to the services collection.
+                .ConfigureAndValidateSingleton<ApplicationOptions>(configuration)
+                .ConfigureAndValidateSingleton<CompressionOptions>(configuration.GetSection(nameof(ApplicationOptions.Compression)))
+                .ConfigureAndValidateSingleton<CacheProfileOptions>(configuration.GetSection(nameof(ApplicationOptions.CacheProfiles)))
+                .ConfigureAndValidateSingleton<KestrelServerOptions>(configuration.GetSection(nameof(ApplicationOptions.Kestrel)));
+
+        public static IServiceCollection AddCustomResponseCompression(
+            this IServiceCollection services,
+            IConfiguration configuration) =>
+            services
+                .Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal)
+                .Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal)
+                .AddResponseCompression(
+                    options =>
+                    {
+                        // Add additional MIME types (other than the built in defaults) to enable GZIP compression for.
+                        var customMimeTypes = configuration
+                            .GetSection(nameof(ApplicationOptions.Compression))
+                            .Get<CompressionOptions>()
+                            ?.MimeTypes ?? Enumerable.Empty<string>();
+                        options.MimeTypes = customMimeTypes.Concat(ResponseCompressionDefaults.MimeTypes);
+
+                        options.Providers.Add<BrotliCompressionProvider>();
+                        options.Providers.Add<GzipCompressionProvider>();
+                    });
 
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services) =>
             services

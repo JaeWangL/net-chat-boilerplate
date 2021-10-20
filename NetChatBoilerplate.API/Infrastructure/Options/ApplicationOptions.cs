@@ -1,6 +1,7 @@
 namespace NetChatBoilerplate.API.Infrastructure.Options
 {
     using System.ComponentModel.DataAnnotations;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
 
     public class ApplicationOptions
     {
@@ -14,5 +15,7 @@ namespace NetChatBoilerplate.API.Infrastructure.Options
 
         [Required]
         public CompressionOptions Compression { get; set; } = default!;
+
+        public KestrelServerOptions Kestrel { get; set; } = default!;
     }
 }

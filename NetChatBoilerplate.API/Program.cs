@@ -1,53 +1,166 @@
-using System;
-using System.IO;
-using System.Net;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Configuration;
-using NetChatBoilerplate.API;
-
-var configuration = GetConfiguration();
-try
+namespace NetChatBoilerplate.API
 {
-    var host = BuildWebHost(configuration, args);
-    host.Run();
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using System.Threading.Tasks;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Boxed.AspNetCore;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using NetChatBoilerplate.API.Infrastructure.AutofacModules;
+    using NetChatBoilerplate.API.Infrastructure.Options;
+    using Serilog;
+    using Serilog.Extensions.Hosting;
 
-    return 0;
-}
-catch (Exception ex)
-{
-    return 1;
-}
-
-IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
-    WebHost.CreateDefaultBuilder(args)
-        .CaptureStartupErrors(false)
-        .ConfigureKestrel(options =>
+    public static class Program
+    {
+        public static async Task<int> Main(string[] args)
         {
-            var ports = GetDefinedPorts(configuration);
-            options.Listen(IPAddress.Any, ports.httpPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2);
+            Log.Logger = CreateBootstrapLogger();
 
-            options.Listen(IPAddress.Any, ports.grpcPort, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
-        })
-        .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
-        .UseStartup<Startup>()
-        .UseContentRoot(Directory.GetCurrentDirectory())
-        .Build();
+            IHostEnvironment? hostEnvironment = null;
 
-IConfiguration GetConfiguration()
-{
-    var builder = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
-        .AddEnvironmentVariables();
+            try
+            {
+                Log.Information("Initialising.");
 
-    return builder.Build();
-}
+                var host = CreateHostBuilder(args).Build();
+                hostEnvironment = host.Services.GetRequiredService<IHostEnvironment>();
+                hostEnvironment.ApplicationName = AssemblyInformation.Current.Product;
 
-(int httpPort, int grpcPort) GetDefinedPorts(IConfiguration config)
-{
-    var grpcPort = config.GetValue("GRPC_PORT", 5001);
-    var port = config.GetValue("PORT", 80);
-    return (port, grpcPort);
+                Log.Information(
+                    "Started {Application} in {Environment} mode.",
+                    hostEnvironment.ApplicationName,
+                    hostEnvironment.EnvironmentName);
+                await host.RunAsync().ConfigureAwait(false);
+                Log.Information(
+                    "Stopped {Application} in {Environment} mode.",
+                    hostEnvironment.ApplicationName,
+                    hostEnvironment.EnvironmentName);
+                return 0;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception exception)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                Log.Fatal(
+                    exception,
+                    "{Application} terminated unexpectedly in {Environment} mode.",
+                    AssemblyInformation.Current.Product,
+                    hostEnvironment?.EnvironmentName);
+                Console.WriteLine(exception.ToString());
+
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            new HostBuilder()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .ConfigureHostConfiguration(
+                    configurationBuilder => configurationBuilder
+                        .AddEnvironmentVariables(prefix: "DOTNET_")
+                        .AddIf(
+                            args is not null,
+                            x => x.AddCommandLine(args)))
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                    AddConfiguration(config, hostingContext.HostingEnvironment, args))
+                    .UseSerilog(ConfigureReloadableLogger)
+                    .UseDefaultServiceProvider(
+                    (context, options) =>
+                    {
+                        var isDevelopment = context.HostingEnvironment.IsDevelopment();
+                        options.ValidateScopes = isDevelopment;
+                        options.ValidateOnBuild = isDevelopment;
+                    })
+                .ConfigureWebHost(ConfigureWebHostBuilder)
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(new ApplicationModule()))
+                .UseConsoleLifetime();
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder webHostBuilder) =>
+            webHostBuilder
+                .UseKestrel(
+                    (builderContext, options) =>
+                    {
+                        options.AddServerHeader = false;
+                        options.Configure(builderContext.Configuration.GetSection(nameof(ApplicationOptions.Kestrel)), reloadOnChange: false);
+                    })
+#if Azure
+                .UseAzureAppServices()
+#endif
+                // Used for IIS and IIS Express for in-process hosting. Use UseIISIntegration for out-of-process hosting.
+                .UseIIS()
+                .UseStartup<Startup>();
+
+        private static IConfigurationBuilder AddConfiguration(
+            IConfigurationBuilder configurationBuilder,
+            IHostEnvironment hostEnvironment,
+            string[] args) =>
+            configurationBuilder
+                // Add configuration from the appsettings.json file.
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                // Add configuration from an optional appsettings.development.json, appsettings.staging.json or
+                // appsettings.production.json file, depending on the environment. These settings override the ones in
+                // the appsettings.json file.
+                .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+                // Add configuration from files in the specified directory. The name of the file is the key and the
+                // contents the value.
+                .AddKeyPerFile(Path.Combine(Directory.GetCurrentDirectory(), "configuration"), optional: true, reloadOnChange: false)
+                // This reads the configuration keys from the secret store. This allows you to store connection strings
+                // and other sensitive settings, so you don't have to check them into your source control provider.
+                // Only use this in Development, it is not intended for Production use. See
+                // http://docs.asp.net/en/latest/security/app-secrets.html
+                .AddIf(
+                    hostEnvironment.IsDevelopment() && !string.IsNullOrEmpty(hostEnvironment.ApplicationName),
+                    x => x.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true, reloadOnChange: false))
+                // Add configuration specific to the Development, Staging or Production environments. This config can
+                // be stored on the machine being deployed to or if you are using Azure, in the cloud. These settings
+                // override the ones in all of the above config files. See
+                // http://docs.asp.net/en/latest/security/app-secrets.html
+                .AddEnvironmentVariables()
+#if ApplicationInsights
+                // Push telemetry data through the Azure Application Insights pipeline faster in the development and
+                // staging environments, allowing you to view results immediately.
+                .AddApplicationInsightsSettings(developerMode: !hostEnvironment.IsProduction())
+#endif
+                // Add command line options. These take the highest priority.
+                .AddIf(
+                    args is not null,
+                    x => x.AddCommandLine(args));
+
+        private static ReloadableLogger CreateBootstrapLogger() =>
+            new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.Debug()
+                .CreateBootstrapLogger();
+
+        private static void ConfigureReloadableLogger(
+            HostBuilderContext context,
+            IServiceProvider services,
+            LoggerConfiguration configuration) =>
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.WithProperty("Application", context.HostingEnvironment.ApplicationName)
+                .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+#if ApplicationInsights
+                .WriteTo.Conditional(
+                    x => context.HostingEnvironment.IsProduction(),
+                    x => x.ApplicationInsights(
+                        services.GetRequiredService<TelemetryConfiguration>(),
+                        TelemetryConverter.Traces))
+#endif
+                .WriteTo.Conditional(
+                    x => context.HostingEnvironment.IsDevelopment(),
+                    x => x.Console().WriteTo.Debug());
+    }
 }
