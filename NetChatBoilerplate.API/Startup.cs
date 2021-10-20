@@ -28,7 +28,7 @@ namespace NetChatBoilerplate.API
             services
                 .AddCustomOptions(this._configuration)
                 .AddServerTiming()
-                .AddCustomMvc(this._environment)
+                .AddCustomMvc(this._environment, this._configuration)
                 .AddCustomResponseCompression(this._configuration)
                 .AddCustomDbContext(this._configuration)
                 .AddCustomSwagger()
